@@ -14,151 +14,151 @@ namespace galena{
         MedicalData, IndoorData, GarbageTruckMovement
     };
     
-    class galenaApplication{
+    class galenaServicesApplication{
         public:
             vector<galenaServices> requiredServices;
             string description;
             string name;
 
-            galenaApplication(string name, vector<galenaServices> reqSvc,string desc){
+            galenaServicesApplication(string name, vector<galenaServices> reqSvc,string desc){
                 this->name = name;
                 this->requiredServices = reqSvc;
                 this->description = desc;
             }
     };
 
-    vector<galenaApplication> galenaApplications{
-        galenaApplication{ "NoService", 
+    vector<galenaServicesApplication> galenaApplications{
+        galenaServicesApplication{ "NoService", 
             vector<galenaServices>{               
             }, "Empty service"
         },
-        galenaApplication{ "CrashDetect", 
+        galenaServicesApplication{ "CrashDetect", 
             vector<galenaServices>{
                 static_cast<galenaServices>(5), static_cast<galenaServices>(8), static_cast<galenaServices>(10)
             }, "Evaluate car crash with environment and traffic sensors"
         },
-        galenaApplication{ "StreetLight", 
+        galenaServicesApplication{ "StreetLight", 
             vector<galenaServices>{
                 static_cast<galenaServices>(4), static_cast<galenaServices>(8), static_cast<galenaServices>(9)
             }, "Street light control based on bright intensity and presence of objects"
         },
-        galenaApplication{ "CityConsumption", 
+        galenaServicesApplication{ "CityConsumption", 
             vector<galenaServices>{
                 static_cast<galenaServices>(7)
             }, "Energy consumption of public objects in the Smart City"
         },
-        galenaApplication{ "Traffic", 
+        galenaServicesApplication{ "Traffic", 
             vector<galenaServices>{
                 static_cast<galenaServices>(1), static_cast<galenaServices>(5), static_cast<galenaServices>(8), static_cast<galenaServices>(10)
             }, "Traffic information using presence and sound sensors, and other information obtained by cars"
         },
-        galenaApplication{ "Bus", 
+        galenaServicesApplication{ "Bus", 
             vector<galenaServices>{
                 static_cast<galenaServices>(1), static_cast<galenaServices>(2), static_cast<galenaServices>(10), static_cast<galenaServices>(11)
             }, "Information regarding public transport (such as occupancy, frequency, timeliness) in real time"
         },
-        galenaApplication{ "Temperature", 
+        galenaServicesApplication{ "Temperature", 
             vector<galenaServices>{
                 static_cast<galenaServices>(1), static_cast<galenaServices>(5)
             }, "Temperature in a selected location"
         },
-        galenaApplication{ "HomeConsumption", 
+        galenaServicesApplication{ "HomeConsumption", 
             vector<galenaServices>{
                 static_cast<galenaServices>(16)
             }, "Users' home energy consumption analysis using home sensors"
         },
-        galenaApplication{ "Event", 
+        galenaServicesApplication{ "Event", 
             vector<galenaServices>{
                 static_cast<galenaServices>(3)
             }, "Information about events in Point of Interests"
         },
-        galenaApplication{ "Parking", 
+        galenaServicesApplication{ "Parking", 
             vector<galenaServices>{
                 static_cast<galenaServices>(1), static_cast<galenaServices>(13)
             }, "Search for available parking slots near the user"
         },
-        galenaApplication{ "Crowd", 
+        galenaServicesApplication{ "Crowd", 
             vector<galenaServices>{
                 static_cast<galenaServices>(1), static_cast<galenaServices>(5), static_cast<galenaServices>(6)
             }, "Using sound, air and weather sensors, evaluate crowd and status of the location"
         },
-        galenaApplication{ "DriveMonitoring", 
+        galenaServicesApplication{ "DriveMonitoring", 
             vector<galenaServices>{
                 static_cast<galenaServices>(5), static_cast<galenaServices>(6), static_cast<galenaServices>(8), static_cast<galenaServices>(9), static_cast<galenaServices>(10)
             }, "Monitor the driver style considering the road, the weather and the car"
         },
-        galenaApplication{ "FireDetect", 
+        galenaServicesApplication{ "FireDetect", 
             vector<galenaServices>{
                 static_cast<galenaServices>(4), static_cast<galenaServices>(5)
             }, "Fire detector using air and other environment sensors"
         },
         //------------------------------------------------------------------------
-        galenaApplication{ "Irrigation", 
+        galenaServicesApplication{ "Irrigation", 
             vector<galenaServices>{
                 static_cast<galenaServices>(5), static_cast<galenaServices>(6)
             }, "Irrigation park controller considering environment and weather information"
         },
-        galenaApplication{ "Panel", 
+        galenaServicesApplication{ "Panel", 
             vector<galenaServices>{
                 static_cast<galenaServices>(3), static_cast<galenaServices>(8), static_cast<galenaServices>(13)
             }, "Data visualization in panels around the city"
         },
-        galenaApplication{ "PollutionDetect", 
+        galenaServicesApplication{ "PollutionDetect", 
             vector<galenaServices>{
                 static_cast<galenaServices>(1), static_cast<galenaServices>(5)
             }, "Pollution detector using environment data in  order to reduce air contamination"
         },
-        galenaApplication{ "Health", 
+        galenaServicesApplication{ "Health", 
             vector<galenaServices>{
                 static_cast<galenaServices>(14)
             }, "Health analysis with smartphone and/or smart-fitness data"
         },
-        galenaApplication{ "ApplianceOptimize", 
+        galenaServicesApplication{ "ApplianceOptimize", 
             vector<galenaServices>{
                 static_cast<galenaServices>(7), static_cast<galenaServices>(15)
             }, "Appliances optimisation using home sensors"
         },
-        galenaApplication{ "Authorization", 
+        galenaServicesApplication{ "Authorization", 
             vector<galenaServices>{
                 static_cast<galenaServices>(4)
             }, "Security system in certain locations, such as Point of Interests"
         },
-        galenaApplication{ "EletricCarCharge", 
+        galenaServicesApplication{ "EletricCarCharge", 
             vector<galenaServices>{
                 static_cast<galenaServices>(5), static_cast<galenaServices>(6), static_cast<galenaServices>(7)
             }, "Optimizer for charging the electrical cars"
         },
-        galenaApplication{ "Cinema", 
+        galenaServicesApplication{ "Cinema", 
             vector<galenaServices>{
                 static_cast<galenaServices>(1), static_cast<galenaServices>(2), static_cast<galenaServices>(3), static_cast<galenaServices>(4)
             }, "Film and crowd information for cinemas"
         },
-        galenaApplication{ "IntrusionDetection", 
+        galenaServicesApplication{ "IntrusionDetection", 
             vector<galenaServices>{
                 static_cast<galenaServices>(4), static_cast<galenaServices>(15)
             }, "Intrusion detection system in a users' home"
         },
-        galenaApplication{ "Alarm", 
+        galenaServicesApplication{ "Alarm", 
             vector<galenaServices>{
                 static_cast<galenaServices>(4), static_cast<galenaServices>(5)
             }, "General danger detector and warning to the interested population"
         },
-        galenaApplication{ "WasteStatus", 
+        galenaServicesApplication{ "WasteStatus", 
             vector<galenaServices>{
                 static_cast<galenaServices>(12), static_cast<galenaServices>(16)
             }, "Garbage trucks status to optimise routes"
         },
-        galenaApplication{ "SmartphoneDetection", 
+        galenaServicesApplication{ "SmartphoneDetection", 
             vector<galenaServices>{
                 static_cast<galenaServices>(1), static_cast<galenaServices>(4)
             }, "General danger detector and warning to the interested population"
         },
-        galenaApplication{ "ChildrenExplorer", 
+        galenaServicesApplication{ "ChildrenExplorer", 
             vector<galenaServices>{
                 static_cast<galenaServices>(1), static_cast<galenaServices>(2)
             }, "Children monitoring"
         },
-        galenaApplication{ "Weather", 
+        galenaServicesApplication{ "Weather", 
             vector<galenaServices>{
                 static_cast<galenaServices>(1), static_cast<galenaServices>(2), static_cast<galenaServices>(5), static_cast<galenaServices>(6)
             }, "Weather information around the city"
