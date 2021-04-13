@@ -3,6 +3,7 @@
 #include "ns3/core-module.h"
 #include "ns3/application.h"
 #include "ns3/socket.h"
+#include "ns3/mobility-model.h"
 
 #include "galenaDevicesProfile.h"
 #include "galenaTag.h"

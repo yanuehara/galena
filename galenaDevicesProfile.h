@@ -16,7 +16,7 @@ namespace galena{
             }
     };
 
-    vector<galenaProfile> galenaProfiles{
+    static vector<galenaProfile> galenaProfiles{
         galenaProfile{
             vector<galenaServices>{},
             vector<int>{}
@@ -205,6 +205,7 @@ namespace galena{
             }
         }
     };
+
 }
 
 

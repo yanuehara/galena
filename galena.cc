@@ -1,14 +1,20 @@
 #include "ns3/core-module.h"
 #include "ns3/node-container.h"
-#include "ns3/internet-stack-helper.h"
+#include "ns3/lr-wpan-net-device.h"
 #include "ns3/lr-wpan-helper.h"
+#include "ns3/lr-wpan-spectrum-value-helper.h"
+#include "ns3/internet-stack-helper.h"
 #include "ns3/sixlowpan-helper.h"
 #include "ns3/ipv6-address-helper.h"
 #include "ns3/mobility-module.h"
 #include "ns3/ns2-mobility-helper.h"
+#include "ns3/spectrum-value.h"
 
 #include <iostream>
 #include <fstream>
+
+#include "galenaDevicesProfile.h"
+#include "galenaApplication.h"
 
 using namespace ns3;
 
@@ -59,8 +65,38 @@ int main(int argc, char *argv[])
     Ns2MobilityHelper ns2 = Ns2MobilityHelper (traceFile);
     ns2.Install();
 
+	NS_LOG_INFO("Creating default policies");
+	std::map<Ipv6Address, int>* nodeAddrs = new std::map<Ipv6Address, int>;
+	galena::policy pol1;
+	pol1.trust = 0.5;
+	pol1.ids = std::set<Ipv6Address>{Ipv6Address{"FF02::1"}};
+	pol1.auth = std::set<galena::AuthenticationMechanisms>{ galena::AuthenticationMechanisms::ECC };
+	pol1.trustCompare = galena::policyTrustComparator::GT;
+	pol1.contexts = std::set<string>{"any"};
+	pol1.final = "ECC_1";
+
+	NS_LOG_INFO("Creating galena application");
+	for (size_t i = 0; i < nodes.GetN(); i++){
+		Ptr<galena::GalenaApplication> nodeApplication = Create<galena::GalenaApplication>();
+		nodeApplication->SetStartTime(Seconds(0.0));
+		nodeApplication->SetStopTime(Seconds(duration));
+		nodes.Get(i)->AddApplication(nodeApplication);
+
+		nodeApplication->setup(1, 0, 0);
+
+		nodeApplication->polManager->addPolicy(pol1);
+		nodeApplication->nodemap = nodeAddrs;
+		nodeAddrs->insert(make_pair(nodeApplication->GetNodeIpAddress(), i));
+
+		Ptr<LrWpanNetDevice> nodenetdev = DynamicCast<LrWpanNetDevice>(nodes.Get(i)->GetDevice(1));
+		auto phy = nodenetdev->GetPhy();
+		LrWpanSpectrumValueHelper svh;
+		auto psd = svh.CreateTxPowerSpectralDensity (-10, 11); //Range of 50m according to lr-wpan-error-distance-plot
+		phy->SetTxPowerSpectralDensity(psd);
+	}
+
     NS_LOG_INFO("Starting Simulation");	
-	Simulator::Stop( Seconds(duration+10) );
+	Simulator::Stop( Seconds(duration) );
 	Simulator::Run();
 	
 	Simulator::Destroy();

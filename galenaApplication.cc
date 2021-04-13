@@ -15,7 +15,7 @@ namespace galena{
     Ipv6Address GalenaApplication::GetNodeIpAddress(){
         Ptr <Node> PtrNode = this->GetNode();
         Ptr<Ipv6> ipv6 = PtrNode->GetObject<Ipv6> ();
-        Ipv6InterfaceAddress iaddr = ipv6->GetAddress(2, 0);
+        Ipv6InterfaceAddress iaddr = ipv6->GetAddress(1, 0);
         Ipv6Address ipAddr = iaddr.GetAddress();
 
         return ipAddr;
@@ -96,8 +96,7 @@ namespace galena{
 
     void GalenaApplication::beacon(){
         Ipv6Address addr = Ipv6Address("FF02::1");
-        uint8_t empty;
-        this->sendMessageHelper(MessageTypes::Beacon, addr, &empty, sizeof(empty));
+        this->sendMessageHelper(MessageTypes::Beacon, addr, nullptr, 0);
 
         Simulator::Schedule(Seconds(1), &GalenaApplication::beacon, this);
     }
@@ -156,9 +155,9 @@ namespace galena{
                     this->is_authenticating_with = fromIP;
                     
                     Ipv6Address addr = Ipv6Address("FF02::1");
-                    uint8_t *buf = new uint8_t[8];
+                    uint8_t *buf = new uint8_t[16];
                     fromIP.Serialize(buf);
-                    this->sendMessageHelper(MessageTypes::TrustRequest, addr, buf, sizeof(buf));
+                    this->sendMessageHelper(MessageTypes::TrustRequest, addr, buf, 16);
                     Simulator::Schedule(Seconds(2), &GalenaApplication::authenticationPhase2, this);
                 }
                     break;
@@ -238,9 +237,9 @@ namespace galena{
             this->sendMessageHelper(MessageTypes::ServiceRequest, peer, nullptr, 0);
 
             Ipv6Address addr = Ipv6Address("FF02::1");
-            uint8_t *buf = new uint8_t[8];
+            uint8_t buf[16];
             peer.Serialize(buf);
-            this->sendMessageHelper(MessageTypes::TrustRequest, addr, buf, sizeof(buf));
+            this->sendMessageHelper(MessageTypes::TrustRequest, addr, buf, 16);
             Simulator::Schedule(Seconds(2), &GalenaApplication::authenticationPhase2, this);
         }
     }
@@ -285,8 +284,12 @@ namespace galena{
 
     double GalenaApplication::getSimilarity(Ipv6Address peer){
         double sim = 0;
-        auto cap1 = &galenaProfiles[this->galenaProfileIndex].servicesOffered;
-        auto cap2 = &galenaProfiles[this->neighCap[peer]].servicesOffered;
+
+        auto profile1 = galenaProfiles[this->galenaProfileIndex];
+        auto profile2 = galenaProfiles[this->neighCap[peer]];
+
+        auto cap1 = &(profile1).servicesOffered;
+        auto cap2 = &(profile2).servicesOffered;
         auto intersection = new std::vector<galenaServices>(cap1->size()+cap2->size());
 
         std::sort(cap1->begin(), cap1->end());

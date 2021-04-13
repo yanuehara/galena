@@ -27,7 +27,7 @@ namespace galena{
             }
     };
 
-    vector<galenaServicesApplication> galenaApplications{
+    static vector<galenaServicesApplication> galenaApplications{
         galenaServicesApplication{ "NoService", 
             vector<galenaServices>{               
             }, "Empty service"
