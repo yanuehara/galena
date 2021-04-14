@@ -174,6 +174,7 @@ namespace galena{
                     fromIP.Serialize(buf);
                     this->sendMessageHelper(MessageTypes::TrustRequest, addr, buf, 16);
                     Simulator::Schedule(Seconds(2), &GalenaApplication::authenticationPhase2, this);
+                    Simulator::Schedule(Seconds(2.5), &GalenaApplication::clearAuthentication, this);
                 }
                     break;
                 case MessageTypes::ServiceExchange:{
@@ -268,6 +269,7 @@ namespace galena{
             peer.Serialize(buf);
             this->sendMessageHelper(MessageTypes::TrustRequest, addr, buf, 16);
             Simulator::Schedule(Seconds(2), &GalenaApplication::authenticationPhase2, this);
+            Simulator::Schedule(Seconds(2.5), &GalenaApplication::clearAuthentication, this);
         }
     }
 
@@ -357,5 +359,9 @@ namespace galena{
     void GalenaApplication::clearTrust(){
         NS_LOG_INFO("Clearing trust");
         this->tManager->clear();
+    }
+
+    void GalenaApplication::clearAuthentication(){
+        this->is_authenticating = false;
     }
 }

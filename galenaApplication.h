@@ -62,6 +62,7 @@ namespace galena{
 
             int sendMessageHelper(MessageTypes type, Ipv6Address addr, uint8_t* buffer, int size);
             void clearTrust();
+            void clearAuthentication();
     };
 
 }
