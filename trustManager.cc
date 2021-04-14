@@ -1,5 +1,8 @@
 #include <cmath>
 #include <numeric>
+#include <fstream>
+
+#include "ns3/core-module.h"
 
 #include "trustManager.h"
 
@@ -81,19 +84,18 @@ namespace galena{
         this->neighPositiveInteractions[peer]++;
     }
 
-    double trustManager::getGalenaTrust(Ipv6Address peer, double distance, double similarity, double timedelta, double *recomendations){
+    double trustManager::getGalenaTrust(Ipv6Address peer, double distance, double similarity, double timedelta, vector<double> rec){
         // trust = alpha*distance + beta*similarity + gamma*SOR
         // SOR = delta* (micra/pi)*e^{-lambda*(timedelta) + (1 - delta)*recomendations
         double trust, sor, direct, indirect;
         double alpha, beta, gamma, delta, micra, pi, lambda;
         const double eulerNumber = exp(1.0);
-        vector<double> rec(*recomendations);
 
-        alpha = strtod(getenv("GALENA_ALPHA"), NULL);
-        beta = strtod(getenv("GALENA_BETA"), NULL);
-        gamma = strtod(getenv("GALENA_GAMMA"), NULL);
-        delta = strtod(getenv("GALENA_DELTA"), NULL);
-        lambda = strtod(getenv("GALENA_LAMBDA"), NULL); //decay fator
+        alpha = stod(getenv("GALENA_ALPHA"), nullptr);
+        beta = stod(getenv("GALENA_BETA"), nullptr);
+        gamma = stod(getenv("GALENA_GAMMA"), nullptr);
+        delta = stod(getenv("GALENA_DELTA"), nullptr);
+        lambda = stod(getenv("GALENA_LAMBDA"), nullptr); //decay fator
 
         micra = (double)this->getNeighInteractions(peer);
         pi = (double) this->getPositiveNeighInteractions(peer);
@@ -108,6 +110,14 @@ namespace galena{
         this->neighDirect[peer] = direct;
         this->neighIndirect[peer] = indirect;
         this->neighTotalInteractions[peer]++;
+
+        std::ofstream fout;
+        stringstream ss;
+        myaddr.Print(ss);
+        fout.open("trustfile-"+ss.str()+".txt", std::ios_base::app);
+        fout << Simulator::Now ().GetSeconds () << "\t" << myaddr << "\t" << peer << "\t" << direct << "\t" << indirect << "\t" << sor << "\t";
+        fout << "\n";
+        fout.close();
 
         return trust;
     }

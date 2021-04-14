@@ -38,6 +38,7 @@ namespace galena{
             std::map<Ipv6Address, int>*                             nodemap;
             std::vector<AuthenticationMechanisms> authm{AuthenticationMechanisms::ECC,
                                                     AuthenticationMechanisms::RSA,
+                                                    AuthenticationMechanisms::SIM,
                                                     AuthenticationMechanisms::NOPASS
                                                 };
             policyManager* polManager;
@@ -60,6 +61,7 @@ namespace galena{
             std::string getContext();
 
             int sendMessageHelper(MessageTypes type, Ipv6Address addr, uint8_t* buffer, int size);
+            void clearTrust();
     };
 
 }

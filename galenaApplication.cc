@@ -88,6 +88,15 @@ namespace galena{
 
         // Run beaconing
         Simulator::ScheduleNow(&GalenaApplication::beacon, this);
+        double stop1 = stod(getenv("GALENA_STOP1"), nullptr);
+        double stop2 = stod(getenv("GALENA_STOP2"), nullptr);
+        double stop3 = stod(getenv("GALENA_STOP3"), nullptr);
+        double stop4 = stod(getenv("GALENA_STOP4"), nullptr);
+
+        Simulator::Schedule(Seconds(stop1), &GalenaApplication::clearTrust, this);
+        Simulator::Schedule(Seconds(stop2), &GalenaApplication::clearTrust, this);
+        Simulator::Schedule(Seconds(stop3), &GalenaApplication::clearTrust, this);
+        Simulator::Schedule(Seconds(stop4), &GalenaApplication::clearTrust, this);
     }
 
     void GalenaApplication::StopApplication(){
@@ -98,7 +107,7 @@ namespace galena{
         Ipv6Address addr = Ipv6Address("FF02::1");
         this->sendMessageHelper(MessageTypes::Beacon, addr, nullptr, 0);
 
-        Simulator::Schedule(Seconds(1), &GalenaApplication::beacon, this);
+        Simulator::Schedule(Seconds(5), &GalenaApplication::beacon, this);
     }
 
     void GalenaApplication::recvCallback(Ptr<Socket> socket){
@@ -117,14 +126,15 @@ namespace galena{
                 case MessageTypes::Beacon:{
                     this->neighList->insert(fromIP);
 
-                    Simulator::ScheduleNow(&GalenaApplication::requestServicesAuth, this, fromIP);
+                    Simulator::Schedule(Seconds(0.1), &GalenaApplication::requestServicesAuth, this, fromIP);
                 }
                     break;
                 case MessageTypes::ServiceInquiry:
                     this->responseServicesAuth(fromIP);
                     break;
                 case MessageTypes::ServiceAnswer:
-                    this->doHandleServiceAnswer(fromIP, buffer, packet->GetSize());
+                    Simulator::Schedule(Seconds(1.3), &GalenaApplication::doHandleServiceAnswer, this, fromIP, buffer, packet->GetSize());
+                    //this->doHandleServiceAnswer(fromIP, buffer, packet->GetSize());
                     break;
                 case MessageTypes::TrustRequest:{
                     Ipv6Address aboutNode;
@@ -151,6 +161,9 @@ namespace galena{
                 }
                     break;
                 case MessageTypes::ServiceRequest:{
+                    if(this->is_authenticating){
+                        break;
+                    }
                     this->is_authenticating = true;
                     this->is_authenticating_with = fromIP;
                     
@@ -164,6 +177,13 @@ namespace galena{
                 case MessageTypes::ServiceExchange:{
                     this->is_authenticating = false;
                     string authenticationMethod((char*)buffer);
+
+                    Ipv6Address myaddr = this->GetNodeIpAddress();
+                    if( fromIP < myaddr){
+                        std::swap(fromIP, myaddr);
+                    }
+                    NS_LOG_INFO("AUTH END(" << fromIP << "), (" << myaddr << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod);
+
 
                     if(authenticationMethod.compare(this->authMethod) == 0){
                         this->tManager->updatePositiveInteractions(fromIP);
@@ -228,9 +248,14 @@ namespace galena{
         x->SetAttribute ("Max", DoubleValue (1.1));
 
         bool should_authenticate = (bool)x->GetValue ();
-        should_authenticate = should_authenticate && this->GetNodeIpAddress() < peer && !is_authenticating;
+        should_authenticate = should_authenticate && this->GetNodeIpAddress() < peer && !this->is_authenticating;
 
         if(should_authenticate){
+            auto myaddr = this->GetNodeIpAddress();
+            if (peer < myaddr){
+                std::swap(peer, myaddr);
+            }
+            NS_LOG_INFO("AUTH BEGIN(" << this->GetNodeIpAddress() << "), (" << peer << ") AT " << Simulator::Now().GetSeconds());
             this->is_authenticating = true;
             this->is_authenticating_with = peer;
 
@@ -245,15 +270,14 @@ namespace galena{
     }
 
     void GalenaApplication::authenticationPhase2(){
+        this->is_authenticating = false;
         Ipv6Address peer = this->is_authenticating_with;
-
-        auto recomendations = this->recomendations.data();
 
         int nodeIDPeer = (*this->nodemap)[peer];
         double distance = this->getDistance(nodeIDPeer);
         double normDistance = 1.0 - exp(-distance/4000.0);
         double similarity = this->getSimilarity(peer);
-        double lastInteraction = 0.0;
+        double lastInteraction = Simulator::Now().ToDouble(Time::S);
         string context = this->getContext();
 
         //Last interaction
@@ -265,12 +289,21 @@ namespace galena{
         {
             ;
         }
+        double timedelta = std::abs(lastInteraction - Simulator::Now().ToDouble(Time::S));
 
-        double trust = this->tManager->getGalenaTrust(peer, normDistance, similarity, lastInteraction, recomendations);
+        double trust = this->tManager->getGalenaTrust(peer, normDistance, similarity, timedelta, this->recomendations);
         string authenticationMethod = this->polManager->applyPolicies(peer, this->neighAuthCap[peer], trust, context);
+        auto currentTime = Simulator::Now();
+        this->neighLastSeen[peer] = currentTime.ToDouble(Time::S);
         this->authMethod = authenticationMethod;
+        
+        int bufsize = authenticationMethod.length();
+        uint8_t* buffer = new uint8_t[bufsize]{'\0'};
+        //std::copy(authenticationMethod.begin(), authenticationMethod.end(), &buffer[0]);
+        memmove(buffer, authenticationMethod.c_str(), bufsize);
 
-        Simulator::ScheduleNow(&GalenaApplication::sendMessageHelper, this, MessageTypes::ServiceExchange, peer, (uint8_t*) authenticationMethod.c_str(), authenticationMethod.size()+1);
+        //this->sendMessageHelper(MessageTypes::ServiceExchange, peer, buffer, authenticationMethod.length());
+        Simulator::Schedule(Seconds(0.1), &GalenaApplication::sendMessageHelper, this, MessageTypes::ServiceExchange, peer, buffer, authenticationMethod.length());
     }
 
     double GalenaApplication::getDistance(int peerID){
@@ -317,5 +350,10 @@ namespace galena{
         }
 
         return context;
+    }
+
+    void GalenaApplication::clearTrust(){
+        NS_LOG_INFO("Clearing trust");
+        this->tManager->clear();
     }
 }

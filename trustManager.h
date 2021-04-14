@@ -17,7 +17,8 @@ namespace galena{
             map<Ipv6Address, int>       neighPositiveInteractions; //tau
         
         public:
-            double getGalenaTrust(Ipv6Address peer, double distance, double similarity, double timedelta, double *recomendations); //Calculates and updates trust for peer
+            Ipv6Address myaddr;
+            double getGalenaTrust(Ipv6Address peer, double distance, double similarity, double timedelta, vector<double> rec); //Calculates and updates trust for peer
             double getDirectTrust(Ipv6Address peer); //Gets direct trust
             double getIndirectTrust(Ipv6Address peer); //Gets indirect trust
             double getNeighTrust(Ipv6Address peer);

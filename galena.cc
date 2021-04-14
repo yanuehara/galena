@@ -10,11 +10,13 @@
 #include "ns3/ns2-mobility-helper.h"
 #include "ns3/spectrum-value.h"
 
+#include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <fstream>
 
 #include "galenaDevicesProfile.h"
 #include "galenaApplication.h"
+#include "galenaConstants.h"
 
 using namespace ns3;
 
@@ -24,6 +26,7 @@ int main(int argc, char *argv[])
 {
     NS_LOG_UNCOND ("GALENA_V1");
     LogComponentEnable("GALENA_V1", LOG_LEVEL_ALL);
+	LogComponentEnable("GALENA_Application", LOG_LEVEL_ALL);
 
     uint32_t nNodes = 16216;
     std::string traceFile;
@@ -61,32 +64,64 @@ int main(int argc, char *argv[])
   	ipv6.SetBase (Ipv6Address ("2020:1::"), Ipv6Prefix (64));
   	Ipv6InterfaceContainer i1 = ipv6.Assign(six1);
 
-    NS_LOG_INFO("Setting up mobility");
-    Ns2MobilityHelper ns2 = Ns2MobilityHelper (traceFile);
-    ns2.Install();
-
 	NS_LOG_INFO("Creating default policies");
 	std::map<Ipv6Address, int>* nodeAddrs = new std::map<Ipv6Address, int>;
+	
 	galena::policy pol1;
 	pol1.trust = 0.5;
 	pol1.ids = std::set<Ipv6Address>{Ipv6Address{"FF02::1"}};
-	pol1.auth = std::set<galena::AuthenticationMechanisms>{ galena::AuthenticationMechanisms::ECC };
+	pol1.auth = std::set<galena::AuthenticationMechanisms>{galena::AuthenticationMechanisms::ECC,
+                                                    galena::AuthenticationMechanisms::RSA,
+                                                    galena::AuthenticationMechanisms::SIM,
+                                                    galena::AuthenticationMechanisms::NOPASS };
 	pol1.trustCompare = galena::policyTrustComparator::GT;
 	pol1.contexts = std::set<string>{"any"};
-	pol1.final = "ECC_1";
+	pol1.final = "ECC_1___";
+
+	galena::policy pol2;
+	pol2.trust = 0.5;
+	pol2.ids = std::set<Ipv6Address>{Ipv6Address{"FF02::1"}};
+	pol2.auth = std::set<galena::AuthenticationMechanisms>{ galena::AuthenticationMechanisms::RSA,
+                                                    galena::AuthenticationMechanisms::SIM,
+                                                    galena::AuthenticationMechanisms::NOPASS  };
+	pol2.trustCompare = galena::policyTrustComparator::GT;
+	pol2.contexts = std::set<string>{"any"};
+	pol2.final = "RSA_1___";
+
+	galena::policy pol3;
+	pol3.trust = 0.9;
+	pol3.ids = std::set<Ipv6Address>{Ipv6Address{"FF02::1"}};
+	pol3.auth = std::set<galena::AuthenticationMechanisms>{ galena::AuthenticationMechanisms::NOPASS };
+	pol3.trustCompare = galena::policyTrustComparator::GT;
+	pol3.contexts = std::set<string>{"home"};
+	pol3.final = "NOPASS_1";
+
+
+	ifstream capFile("capabilities.txt");
+	std::string line;
 
 	NS_LOG_INFO("Creating galena application");
-	for (size_t i = 0; i < nodes.GetN(); i++){
+	for (size_t i = 0; i < nodes.GetN() && getline(capFile, line); i++){
 		Ptr<galena::GalenaApplication> nodeApplication = Create<galena::GalenaApplication>();
 		nodeApplication->SetStartTime(Seconds(0.0));
 		nodeApplication->SetStopTime(Seconds(duration));
 		nodes.Get(i)->AddApplication(nodeApplication);
 
-		nodeApplication->setup(1, 0, 0);
+		vector<std::string> strs;
+		//boost::algorithm::split_regex(strs, line, boost::regex("\t"));
+		boost::split(strs,line,boost::is_any_of("\t"));
+		int profileIndex = std::strtol(strs[1].c_str(), nullptr, 10);
+		double xHome = std::strtod(strs[2].c_str(), nullptr);
+		double yHome = std::strtod(strs[3].c_str(), nullptr);
+		nodeApplication->setup(profileIndex, xHome, yHome);
+		NS_LOG_INFO("Setting node " << i << " with " << line);
 
 		nodeApplication->polManager->addPolicy(pol1);
+		nodeApplication->polManager->addPolicy(pol2);
+		nodeApplication->polManager->addPolicy(pol3);
 		nodeApplication->nodemap = nodeAddrs;
-		nodeAddrs->insert(make_pair(nodeApplication->GetNodeIpAddress(), i));
+		auto addr = nodeApplication->GetNodeIpAddress();
+		nodeAddrs->insert(make_pair(addr, i));
 
 		Ptr<LrWpanNetDevice> nodenetdev = DynamicCast<LrWpanNetDevice>(nodes.Get(i)->GetDevice(1));
 		auto phy = nodenetdev->GetPhy();
@@ -94,6 +129,10 @@ int main(int argc, char *argv[])
 		auto psd = svh.CreateTxPowerSpectralDensity (-10, 11); //Range of 50m according to lr-wpan-error-distance-plot
 		phy->SetTxPowerSpectralDensity(psd);
 	}
+
+    NS_LOG_INFO("Setting up mobility");
+    Ns2MobilityHelper ns2 = Ns2MobilityHelper (traceFile);
+    ns2.Install();
 
     NS_LOG_INFO("Starting Simulation");	
 	Simulator::Stop( Seconds(duration) );
