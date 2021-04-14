@@ -50,6 +50,8 @@ namespace galena{
         this->tManager = new trustManager();
         this->home = CreateObject<ConstantPositionMobilityModel>();
         this->home->SetPosition(Vector3D(homeX, homeY, 0.0));
+
+        NS_LOG_INFO("Setup " << (*this->nodemap)[this->GetNodeIpAddress()] << " successfully");
     }
 
     int GalenaApplication::sendMessageHelper(MessageTypes type, Ipv6Address addr, uint8_t* buffer, int size){
