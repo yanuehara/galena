@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
 	CommandLine cmd;
 	cmd.AddValue ("nNodes", "Number of node devices", nNodes);
-    cmd.AddValue ("duration", "duration", traceFile);
+    cmd.AddValue ("duration", "duration", duration);
     cmd.AddValue ("traceFile", "Ns2 movement trace file", traceFile);
 	cmd.Parse (argc,argv);
 
@@ -121,6 +121,7 @@ int main(int argc, char *argv[])
 		nodeApplication->polManager->addPolicy(pol3);
 		nodeApplication->nodemap = nodeAddrs;
 		auto addr = nodeApplication->GetNodeIpAddress();
+		nodeApplication->tManager->myaddr = addr;
 		nodeAddrs->insert(make_pair(addr, i));
 
 		Ptr<LrWpanNetDevice> nodenetdev = DynamicCast<LrWpanNetDevice>(nodes.Get(i)->GetDevice(1));

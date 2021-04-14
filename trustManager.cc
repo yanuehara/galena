@@ -113,8 +113,8 @@ namespace galena{
 
         std::ofstream fout;
         stringstream ss;
-        myaddr.Print(ss);
-        fout.open("trustfile-"+ss.str()+".txt", std::ios_base::app);
+        ss << "trustfile-" << myaddr << ".txt";
+        fout.open(ss.str(), std::ios_base::app);
         fout << Simulator::Now ().GetSeconds () << "\t" << myaddr << "\t" << peer << "\t" << direct << "\t" << indirect << "\t" << sor << "\t";
         fout << "\n";
         fout.close();
