@@ -100,7 +100,12 @@ namespace galena{
         micra = (double)this->getNeighInteractions(peer);
         pi = (double) this->getPositiveNeighInteractions(peer);
 
-        direct = (micra/pi)*pow(eulerNumber, -lambda*timedelta);
+        if(micra == pi && micra == 0){
+            direct = 0.0;
+        }else{
+            direct = (micra/pi)*pow(eulerNumber, -lambda*timedelta);
+        }
+
         indirect = accumulate(rec.begin(), rec.end(), 0.0) / rec.size();
 
         sor = delta*direct+(1-delta)*indirect;
@@ -115,7 +120,15 @@ namespace galena{
         stringstream ss;
         ss << "trustfile-" << myaddr << ".txt";
         fout.open(ss.str(), std::ios_base::app);
-        fout << Simulator::Now ().GetSeconds () << "\t" << myaddr << "\t" << peer << "\t" << direct << "\t" << indirect << "\t" << sor << "\t";
+        fout << Simulator::Now ().GetSeconds () << "\t"
+                << myaddr << "\t"
+                << peer << "\t"
+                << direct << "\t"
+                << indirect << "\t"
+                << sor << "\t"
+                << distance << "\t"
+                << similarity << "\t"
+                ;
         fout << "\n";
         fout.close();
 
