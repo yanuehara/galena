@@ -102,6 +102,7 @@ int main(int argc, char *argv[])
 
 	NS_LOG_INFO("Creating galena application");
 	for (size_t i = 0; i < nodes.GetN() && getline(capFile, line); i++){
+		NS_LOG_INFO("Setting node " << i << " with " << line);
 		Ptr<galena::GalenaApplication> nodeApplication = Create<galena::GalenaApplication>();
 		nodeApplication->SetStartTime(Seconds(0.0));
 		nodeApplication->SetStopTime(Seconds(duration));
@@ -113,16 +114,15 @@ int main(int argc, char *argv[])
 		int profileIndex = std::strtol(strs[1].c_str(), nullptr, 10);
 		double xHome = std::strtod(strs[2].c_str(), nullptr);
 		double yHome = std::strtod(strs[3].c_str(), nullptr);
-		nodeApplication->setup(profileIndex, xHome, yHome);
-		NS_LOG_INFO("Setting node " << i << " with " << line);
 
+		auto addr = nodeApplication->GetNodeIpAddress();
+		nodeAddrs->insert(make_pair(addr, i));
+		nodeApplication->nodemap = nodeAddrs;
+		nodeApplication->setup(profileIndex, xHome, yHome);
 		nodeApplication->polManager->addPolicy(pol1);
 		nodeApplication->polManager->addPolicy(pol2);
 		nodeApplication->polManager->addPolicy(pol3);
-		nodeApplication->nodemap = nodeAddrs;
-		auto addr = nodeApplication->GetNodeIpAddress();
 		nodeApplication->tManager->myaddr = addr;
-		nodeAddrs->insert(make_pair(addr, i));
 
 		Ptr<LrWpanNetDevice> nodenetdev = DynamicCast<LrWpanNetDevice>(nodes.Get(i)->GetDevice(1));
 		auto phy = nodenetdev->GetPhy();
