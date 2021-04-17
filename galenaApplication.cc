@@ -179,7 +179,7 @@ namespace galena{
                     break;
                 case MessageTypes::ServiceExchange:{
                     this->is_authenticating = false;
-                    string authenticationMethod((char*)buffer);
+                    std::string authenticationMethod = std::string((char*)buffer);
 
                     Ipv6Address myaddr = this->GetNodeIpAddress();
                     if( fromIP < myaddr){
