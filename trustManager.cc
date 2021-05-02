@@ -100,13 +100,16 @@ namespace galena{
         micra = (double)this->getNeighInteractions(peer);
         pi = (double) this->getPositiveNeighInteractions(peer);
 
-        if(micra == pi && micra == 0){
+
+        direct = (micra/pi)*pow(eulerNumber, -lambda*timedelta);
+        if(std::isnan(direct)){
             direct = 0.0;
-        }else{
-            direct = (micra/pi)*pow(eulerNumber, -lambda*timedelta);
         }
 
         indirect = accumulate(rec.begin(), rec.end(), 0.0) / rec.size();
+        if(std::isnan(indirect)){
+            indirect = 0.0;
+        }
 
         sor = delta*direct+(1-delta)*indirect;
         trust = alpha*distance + beta*similarity + gamma*sor;
@@ -128,6 +131,7 @@ namespace galena{
                 << sor << "\t"
                 << distance << "\t"
                 << similarity << "\t"
+                << trust
                 ;
         fout << "\n";
         fout.close();

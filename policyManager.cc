@@ -82,7 +82,7 @@ namespace galena{
         switch (pol.trustCompare)
         {
         case policyTrustComparator::GT:{
-                if(std::isgreater(trust, pol.trust)){
+                if(std::isgreater(trust, pol.trust) && std::isless(trust, pol.upperbound)){
                     value += 10;
                 }
             }

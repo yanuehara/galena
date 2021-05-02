@@ -185,11 +185,12 @@ namespace galena{
                     if( fromIP < myaddr){
                         std::swap(fromIP, myaddr);
                     }
-                    NS_LOG_INFO("AUTH END(" << fromIP << "), (" << myaddr << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod);
-
 
                     if(authenticationMethod.compare(this->authMethod) == 0){
                         this->tManager->updatePositiveInteractions(fromIP);
+                        NS_LOG_INFO("AUTH END(" << fromIP << "), (" << myaddr << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod);
+                    }else{
+                        NS_LOG_INFO("AUTH END(" << fromIP << "), (" << myaddr << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=NONE");
                     }
                 }
                     break;

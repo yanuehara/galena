@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
 	
 	galena::policy pol1;
 	pol1.trust = 0.5;
+	pol1.upperbound = 0.9;
 	pol1.ids = std::set<Ipv6Address>{Ipv6Address{"FF02::1"}};
 	pol1.auth = std::set<galena::AuthenticationMechanisms>{galena::AuthenticationMechanisms::ECC,
                                                     galena::AuthenticationMechanisms::RSA,
@@ -79,7 +80,8 @@ int main(int argc, char *argv[])
 	pol1.final = "ECC_1___";
 
 	galena::policy pol2;
-	pol2.trust = 0.5;
+	pol2.trust = 0.0;
+	pol2.upperbound = 0.5;
 	pol2.ids = std::set<Ipv6Address>{Ipv6Address{"FF02::1"}};
 	pol2.auth = std::set<galena::AuthenticationMechanisms>{ galena::AuthenticationMechanisms::RSA,
                                                     galena::AuthenticationMechanisms::SIM,
@@ -90,6 +92,7 @@ int main(int argc, char *argv[])
 
 	galena::policy pol3;
 	pol3.trust = 0.9;
+	pol3.upperbound = 1.0;
 	pol3.ids = std::set<Ipv6Address>{Ipv6Address{"FF02::1"}};
 	pol3.auth = std::set<galena::AuthenticationMechanisms>{ galena::AuthenticationMechanisms::NOPASS };
 	pol3.trustCompare = galena::policyTrustComparator::GT;

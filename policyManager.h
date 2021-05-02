@@ -18,6 +18,7 @@ namespace galena{
         set<AuthenticationMechanisms> auth;
         policyTrustComparator trustCompare;
         double trust;
+        double upperbound;
         set<string> contexts;
         string final;
     };
