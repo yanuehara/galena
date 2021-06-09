@@ -1,4 +1,4 @@
-#include "ns3/core-module.h"
+
 #include "ns3/node-container.h"
 #include "ns3/lr-wpan-net-device.h"
 #include "ns3/lr-wpan-helper.h"
@@ -9,6 +9,7 @@
 #include "ns3/mobility-module.h"
 #include "ns3/ns2-mobility-helper.h"
 #include "ns3/spectrum-value.h"
+#include "ns3/wifi-module.h"
 
 #include <boost/algorithm/string.hpp>
 #include <iostream>
@@ -48,21 +49,30 @@ int main(int argc, char *argv[])
 	internetv6.SetIpv6StackInstall(true);
 	internetv6.Install(nodes);
 
-    NS_LOG_INFO ("Create channels");
-	LrWpanHelper lrwpan(false);
-	NetDeviceContainer netdevices = lrwpan.Install(nodes);
-	lrwpan.AssociateToPan(netdevices, 0);
-	//lrwpan.EnablePcapAll("galena-");
+	WifiHelper wifi;
+	wifi.SetStandard (WIFI_PHY_STANDARD_80211a);
+	wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", "DataMode",
+			                      StringValue ("OfdmRate6Mbps"), "RtsCtsThreshold",
+								  UintegerValue (0));
 
-    NS_LOG_INFO("Creating sixlowpan");
-	SixLowPanHelper sixlowpan;
-   	//sixlowpan.SetDeviceAttribute("ForceEtherType", BooleanValue (true) );
-   	NetDeviceContainer six1 = sixlowpan.Install(netdevices);
+	// MAC Layer non QoS
+
+	WifiMacHelper wifiMac;
+	wifiMac.SetType ("ns3::AdhocWifiMac");
+
+	// PHY layer
+	YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default();
+	YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
+	wifiPhy.SetChannel (wifiChannel.Create ());
+
+	// Creating and installing netdevices in all nodes
+	NetDeviceContainer devices;
+	devices = wifi.Install (wifiPhy, wifiMac, nodes);
 
 	NS_LOG_INFO ("Create networks and assign IPv6 Addresses");
    	Ipv6AddressHelper ipv6;
   	ipv6.SetBase (Ipv6Address ("2020:1::"), Ipv6Prefix (64));
-  	Ipv6InterfaceContainer i1 = ipv6.Assign(six1);
+  	Ipv6InterfaceContainer i1 = ipv6.Assign(devices);
 
 	NS_LOG_INFO("Creating default policies");
 	std::map<Ipv6Address, int>* nodeAddrs = new std::map<Ipv6Address, int>;
@@ -127,11 +137,11 @@ int main(int argc, char *argv[])
 		nodeApplication->polManager->addPolicy(pol3);
 		nodeApplication->tManager->myaddr = addr;
 
-		Ptr<LrWpanNetDevice> nodenetdev = DynamicCast<LrWpanNetDevice>(nodes.Get(i)->GetDevice(1));
+		/*Ptr<LrWpanNetDevice> nodenetdev = DynamicCast<LrWpanNetDevice>(nodes.Get(i)->GetDevice(1));
 		auto phy = nodenetdev->GetPhy();
 		LrWpanSpectrumValueHelper svh;
 		auto psd = svh.CreateTxPowerSpectralDensity (-10, 11); //Range of 50m according to lr-wpan-error-distance-plot
-		phy->SetTxPowerSpectralDensity(psd);
+		phy->SetTxPowerSpectralDensity(psd);*/
 	}
 
     NS_LOG_INFO("Setting up mobility");

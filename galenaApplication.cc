@@ -77,7 +77,7 @@ namespace galena{
         // If socket is not created yet
         if(!this->m_socket){
             // Create socket
-            auto netdev = this->GetNode()->GetDevice(2);
+            auto netdev = this->GetNode()->GetDevice(1);
             
             this->m_socket = Socket::CreateSocket(GetNode(), m_tid);
             this->m_socket->BindToNetDevice(netdev);
