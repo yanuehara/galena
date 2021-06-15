@@ -8,7 +8,9 @@ using namespace std;
 class SingletonLogger {
     public:
         static SingletonLogger* getInstance(std::string filename);
+        static SingletonLogger* getInstance();
         void writeEntry(std::string entry);
+        void closeLog();
 
     protected:
         bool logfileOpened {false};
@@ -20,6 +22,7 @@ class SingletonLogger {
         SingletonLogger(std::string filename);
         
         //Delete
+        SingletonLogger() = delete;
         SingletonLogger(const SingletonLogger&) = delete;
         SingletonLogger& operator=(const SingletonLogger&) = delete;
         SingletonLogger(SingletonLogger&&) = delete;

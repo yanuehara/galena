@@ -121,7 +121,7 @@ namespace galena{
 
         std::ofstream fout;
         stringstream ss;
-        ss << "trustfile-" << myaddr << ".txt";
+        ss << this->logdir << "/" << "trustfile-" << myaddr << ".txt";
         fout.open(ss.str(), std::ios_base::app);
         fout << Simulator::Now ().GetSeconds () << "\t"
                 << myaddr << "\t"

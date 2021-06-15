@@ -18,6 +18,7 @@ namespace galena{
         
         public:
             Ipv6Address myaddr;
+            std::string logdir;
             double getGalenaTrust(Ipv6Address peer, double distance, double similarity, double timedelta, vector<double> rec); //Calculates and updates trust for peer
             double getDirectTrust(Ipv6Address peer); //Gets direct trust
             double getIndirectTrust(Ipv6Address peer); //Gets indirect trust

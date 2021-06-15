@@ -14,7 +14,9 @@
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <fstream>
+#include <sys/stat.h>
 
+#include "singletonLogger.h"
 #include "galenaDevicesProfile.h"
 #include "galenaApplication.h"
 #include "galenaConstants.h"
@@ -32,18 +34,26 @@ int main(int argc, char *argv[])
     uint32_t nNodes = 16216;
     std::string traceFile;
     int64_t duration = 2591810;
+	string logdir = ".";
 
 	CommandLine cmd;
 	cmd.AddValue ("nNodes", "Number of node devices", nNodes);
     cmd.AddValue ("duration", "duration", duration);
     cmd.AddValue ("traceFile", "Ns2 movement trace file", traceFile);
+	cmd.AddValue ("logdir", "galena log dir", logdir);
 	cmd.Parse (argc,argv);
 
+	mkdir(logdir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	auto logger = SingletonLogger::getInstance(logdir + "/galena-log.txt");
+	logger->writeEntry("Galena session started!");
+
 	NS_LOG_INFO("Creating " << nNodes << " nodes");
+	logger->writeEntry("Creating " + std::to_string(nNodes) + " nodes");
 	NodeContainer nodes;
 	nodes.Create(nNodes);
 
 	NS_LOG_INFO("Creating internet stack");
+	logger->writeEntry("Creating internet stack");
 	InternetStackHelper internetv6;
 	internetv6.SetIpv4StackInstall(false);
 	internetv6.SetIpv6StackInstall(true);
@@ -70,11 +80,13 @@ int main(int argc, char *argv[])
 	devices = wifi.Install (wifiPhy, wifiMac, nodes);
 
 	NS_LOG_INFO ("Create networks and assign IPv6 Addresses");
+	logger->writeEntry("Create networks and assign IPv6 Addresses");
    	Ipv6AddressHelper ipv6;
   	ipv6.SetBase (Ipv6Address ("2020:1::"), Ipv6Prefix (64));
   	Ipv6InterfaceContainer i1 = ipv6.Assign(devices);
 
 	NS_LOG_INFO("Creating default policies");
+	logger->writeEntry("Creating default policies");
 	std::map<Ipv6Address, int>* nodeAddrs = new std::map<Ipv6Address, int>;
 	
 	galena::policy pol1;
@@ -114,6 +126,7 @@ int main(int argc, char *argv[])
 	std::string line;
 
 	NS_LOG_INFO("Creating galena application");
+	logger->writeEntry("Creating galena application");
 	for (size_t i = 0; i < nodes.GetN() && getline(capFile, line); i++){
 		NS_LOG_INFO("Setting node " << i << " with " << line);
 		Ptr<galena::GalenaApplication> nodeApplication = Create<galena::GalenaApplication>();
@@ -136,6 +149,7 @@ int main(int argc, char *argv[])
 		nodeApplication->polManager->addPolicy(pol2);
 		nodeApplication->polManager->addPolicy(pol3);
 		nodeApplication->tManager->myaddr = addr;
+		nodeApplication->tManager->logdir = logdir;
 
 		/*Ptr<LrWpanNetDevice> nodenetdev = DynamicCast<LrWpanNetDevice>(nodes.Get(i)->GetDevice(1));
 		auto phy = nodenetdev->GetPhy();
@@ -145,15 +159,19 @@ int main(int argc, char *argv[])
 	}
 
     NS_LOG_INFO("Setting up mobility");
+	logger->writeEntry("Setting up mobility");
     Ns2MobilityHelper ns2 = Ns2MobilityHelper (traceFile);
     ns2.Install();
 
-    NS_LOG_INFO("Starting Simulation");	
+    NS_LOG_INFO("Starting Simulation");
+	logger->writeEntry("Starting Simulation");	
 	Simulator::Stop( Seconds(duration) );
 	Simulator::Run();
 	
 	Simulator::Destroy();
 
 	NS_LOG_INFO("Simulation end");
+	logger->writeEntry("Simulation end");
+	logger->closeLog();
     return 0;
 }

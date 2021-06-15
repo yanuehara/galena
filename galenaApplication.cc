@@ -4,6 +4,7 @@
 #include "ns3/ipv6.h"
 #include "ns3/node-list.h"
 #include "ns3/mobility-module.h"
+#include "singletonLogger.h"
 
 #include "galenaApplication.h"
 
@@ -52,6 +53,9 @@ namespace galena{
         this->home->SetPosition(Vector3D(homeX, homeY, 0.0));
 
         NS_LOG_INFO("Setup " << (*this->nodemap)[this->GetNodeIpAddress()] << " successfully");
+
+        auto logger = SingletonLogger::getInstance();
+        logger->writeEntry("Setup " + std::to_string((*this->nodemap)[this->GetNodeIpAddress()]) + " successfully");
     }
 
     int GalenaApplication::sendMessageHelper(MessageTypes type, Ipv6Address addr, uint8_t* buffer, int size){
@@ -186,12 +190,19 @@ namespace galena{
                         std::swap(fromIP, myaddr);
                     }
 
+                    auto logger = SingletonLogger::getInstance();
+                    stringstream ss;
+
                     if(authenticationMethod.compare(this->authMethod) == 0){
                         this->tManager->updatePositiveInteractions(fromIP);
                         NS_LOG_INFO("AUTH END(" << fromIP << "), (" << myaddr << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod);
+                        ss << "AUTH END(" << fromIP << "), (" << myaddr << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod;
                     }else{
                         NS_LOG_INFO("AUTH END(" << fromIP << "), (" << myaddr << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=NONE");
+                        ss << "AUTH END(" << fromIP << "), (" << myaddr << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=NONE";
                     }
+
+                    logger->writeEntry(ss.str());
                 }
                     break;
 
@@ -259,7 +270,12 @@ namespace galena{
             if (peer < myaddr){
                 std::swap(peer, myaddr);
             }
+            stringstream ss;
             NS_LOG_INFO("AUTH BEGIN(" << this->GetNodeIpAddress() << "), (" << peer << ") AT " << Simulator::Now().GetSeconds());
+            ss << "AUTH BEGIN(" << this->GetNodeIpAddress() << "), (" << peer << ") AT " << Simulator::Now().GetSeconds();
+            auto logger = SingletonLogger::getInstance();
+            logger->writeEntry(ss.str());
+
             this->is_authenticating = true;
             this->is_authenticating_with = peer;
 
@@ -358,6 +374,8 @@ namespace galena{
     }
 
     void GalenaApplication::clearTrust(){
+        auto logger = SingletonLogger::getInstance();
+        logger->writeEntry("Clearing trust");
         NS_LOG_INFO("Clearing trust");
         this->tManager->clear();
     }
