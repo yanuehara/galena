@@ -72,7 +72,10 @@ int main(int argc, char *argv[])
 
 	// PHY layer
 	YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default();
-	YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default ();
+	YansWifiChannelHelper wifiChannel;
+	wifiChannel.AddPropagationLoss("ns3::RangePropagationLossModel",
+									"MaxRange", DoubleValue(50.0));
+	wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
 	wifiPhy.SetChannel (wifiChannel.Create ());
 
 	// Creating and installing netdevices in all nodes
