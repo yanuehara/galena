@@ -35,12 +35,14 @@ int main(int argc, char *argv[])
     std::string traceFile;
     int64_t duration = 2591810;
 	string logdir = ".";
+	string capfile = "capabilities.txt";
 
 	CommandLine cmd;
 	cmd.AddValue ("nNodes", "Number of node devices", nNodes);
     cmd.AddValue ("duration", "duration", duration);
     cmd.AddValue ("traceFile", "Ns2 movement trace file", traceFile);
 	cmd.AddValue ("logdir", "galena log dir", logdir);
+	cmd.AddValue ("capfile", "galena capafile", capfile);
 	cmd.Parse (argc,argv);
 
 	mkdir(logdir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -125,7 +127,7 @@ int main(int argc, char *argv[])
 	pol3.final = "NOPASS_1";
 
 
-	ifstream capFile("capabilities.txt");
+	ifstream capFile(capfile);
 	std::string line;
 
 	NS_LOG_INFO("Creating galena application");
