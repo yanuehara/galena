@@ -15,10 +15,18 @@ namespace galena{
             map<Ipv6Address, double>    neighTrust;
             map<Ipv6Address, int>       neighTotalInteractions; //micra
             map<Ipv6Address, int>       neighPositiveInteractions; //tau
+            double alpha;
+            double beta;
+            double gamma;
+            double delta;
+            double lambda;
         
         public:
             Ipv6Address myaddr;
             std::string logdir;
+
+            trustManager();
+
             double getGalenaTrust(Ipv6Address peer, double distance, double similarity, double timedelta, vector<double> rec); //Calculates and updates trust for peer
             double getDirectTrust(Ipv6Address peer); //Gets direct trust
             double getIndirectTrust(Ipv6Address peer); //Gets indirect trust

@@ -7,6 +7,14 @@
 #include "trustManager.h"
 
 namespace galena{
+    trustManager::trustManager(){
+        this->alpha = stod(getenv("GALENA_ALPHA"), nullptr);
+        this->beta = stod(getenv("GALENA_BETA"), nullptr);
+        this->gamma = stod(getenv("GALENA_GAMMA"), nullptr);
+        this->delta = stod(getenv("GALENA_DELTA"), nullptr);
+        this->lambda = stod(getenv("GALENA_LAMBDA"), nullptr); //decay fator
+    }
+
     double trustManager::getDirectTrust(Ipv6Address peer){
         double direct;
             try
@@ -91,11 +99,11 @@ namespace galena{
         double alpha, beta, gamma, delta, micra, pi, lambda;
         const double eulerNumber = exp(1.0);
 
-        alpha = stod(getenv("GALENA_ALPHA"), nullptr);
-        beta = stod(getenv("GALENA_BETA"), nullptr);
-        gamma = stod(getenv("GALENA_GAMMA"), nullptr);
-        delta = stod(getenv("GALENA_DELTA"), nullptr);
-        lambda = stod(getenv("GALENA_LAMBDA"), nullptr); //decay fator
+        alpha = this->alpha;
+        beta = this->beta;
+        gamma = this->gamma;
+        delta = this->delta;
+        lambda = this->lambda;
 
         micra = (double)this->getNeighInteractions(peer);
         pi = (double) this->getPositiveNeighInteractions(peer);

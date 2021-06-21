@@ -99,10 +99,17 @@ namespace galena{
         double stop3 = stod(getenv("GALENA_STOP3"), nullptr);
         double stop4 = stod(getenv("GALENA_STOP4"), nullptr);
 
-        Simulator::Schedule(Seconds(stop1), &GalenaApplication::clearTrust, this);
-        Simulator::Schedule(Seconds(stop2), &GalenaApplication::clearTrust, this);
-        Simulator::Schedule(Seconds(stop3), &GalenaApplication::clearTrust, this);
-        Simulator::Schedule(Seconds(stop4), &GalenaApplication::clearTrust, this);
+        if (stop1 >= 0.0)
+            Simulator::Schedule(Seconds(stop1), &GalenaApplication::clearTrust, this);
+
+        if (stop2 >= 0.0)
+            Simulator::Schedule(Seconds(stop2), &GalenaApplication::clearTrust, this);
+
+        if (stop3 >= 0.0)
+            Simulator::Schedule(Seconds(stop3), &GalenaApplication::clearTrust, this);
+
+        if (stop4 >= 0.0)
+            Simulator::Schedule(Seconds(stop4), &GalenaApplication::clearTrust, this);
     }
 
     void GalenaApplication::StopApplication(){
