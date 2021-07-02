@@ -36,6 +36,8 @@ int main(int argc, char *argv[])
     int64_t duration = 2591810;
 	string logdir = ".";
 	string capfile = "capabilities.txt";
+	bool attack = false;
+	int attackDensity = 10;
 
 	CommandLine cmd;
 	cmd.AddValue ("nNodes", "Number of node devices", nNodes);
@@ -43,6 +45,8 @@ int main(int argc, char *argv[])
     cmd.AddValue ("traceFile", "Ns2 movement trace file", traceFile);
 	cmd.AddValue ("logdir", "galena log dir", logdir);
 	cmd.AddValue ("capfile", "galena capafile", capfile);
+	cmd.AddValue ("attack", "attack mode", attack);
+	cmd.AddValue ("attackDensity", "density of attackers", attackDensity);
 	cmd.Parse (argc,argv);
 
 	mkdir(logdir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -129,6 +133,9 @@ int main(int argc, char *argv[])
 
 	ifstream capFile(capfile);
 	std::string line;
+	int maxAttackers = ceil(nNodes*attackDensity);
+	int attackerCount = 0;
+	stringstream ss;
 
 	NS_LOG_INFO("Creating galena application");
 	logger->writeEntry("Creating galena application");
@@ -155,6 +162,24 @@ int main(int argc, char *argv[])
 		nodeApplication->polManager->addPolicy(pol3);
 		nodeApplication->tManager->myaddr = addr;
 		nodeApplication->tManager->logdir = logdir;
+
+		if (attack){
+			Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+			x->SetAttribute ("Min", DoubleValue (0));
+			x->SetAttribute ("Max", DoubleValue (1.1));
+
+			bool attacker = (bool)x->GetInteger ();
+			if (attacker && attackerCount < maxAttackers) {
+				int attackTypeEnv = stod(getenv("GALENA_ATTACK"), nullptr);
+				galena::AttackType type = galena::AttackType(attackTypeEnv);
+				nodeApplication->tManager->attack = type;
+
+				attackerCount++;
+				ss << "[Attacker] " << addr;
+				logger->writeEntry(ss.str());
+				ss.str(std::string()); //Clears stringstream
+			}
+		}
 
 		/*Ptr<LrWpanNetDevice> nodenetdev = DynamicCast<LrWpanNetDevice>(nodes.Get(i)->GetDevice(1));
 		auto phy = nodenetdev->GetPhy();

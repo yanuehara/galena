@@ -4,6 +4,8 @@
 
 #include "ns3/socket.h"
 
+#include "galenaConstants.h"
+
 using namespace std;
 using namespace ns3;
 
@@ -15,6 +17,7 @@ namespace galena{
             map<Ipv6Address, double>    neighTrust;
             map<Ipv6Address, int>       neighTotalInteractions; //micra
             map<Ipv6Address, int>       neighPositiveInteractions; //tau
+
             double alpha;
             double beta;
             double gamma;
@@ -24,6 +27,7 @@ namespace galena{
         public:
             Ipv6Address myaddr;
             std::string logdir;
+            AttackType attack{AttackType::NoAttack};
 
             trustManager();
 

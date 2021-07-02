@@ -76,6 +76,7 @@ namespace galena{
 
     double trustManager::getNeighTrust(Ipv6Address peer){
         double trust;
+
         try
         {
             trust = this->neighTrust.at(peer);
@@ -83,6 +84,18 @@ namespace galena{
         catch(const std::out_of_range& e)
         {
             trust = this->neighTrust[peer] = 0.5;
+        }
+
+        if(this->attack == AttackType::SelfConstant || this->attack == AttackType::SybilConstant)
+            trust = 0;
+        else if(this->attack == AttackType::SelfOnOff || this->attack == AttackType::SybilOnOff){
+            Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+            x->SetAttribute ("Min", DoubleValue (0));
+            x->SetAttribute ("Max", DoubleValue (1.1));
+
+            bool shouldAttack = (bool)x->GetInteger();
+            if(shouldAttack)
+                trust = 0;
         }
         
         return trust;
