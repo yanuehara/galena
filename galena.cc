@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 
 	ifstream capFile(capfile);
 	std::string line;
-	int maxAttackers = ceil(nNodes*attackDensity);
+	int maxAttackers = ceil(nNodes*attackDensity/100);
 	int attackerCount = 0;
 	stringstream ss;
 

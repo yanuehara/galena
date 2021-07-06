@@ -25,6 +25,7 @@ void SingletonLogger::writeEntry(std::string entry){
     //this->logfile.write(entry.c_str(), sizeof(char)*entry.size());
     this->logfile << entry << std::endl;
     //std::clog << "Wrote to file" << std::endl;
+    this->logfile.flush();
 }
 
 void SingletonLogger::closeLog(){

@@ -4,9 +4,11 @@
 #include "ns3/ipv6.h"
 #include "ns3/node-list.h"
 #include "ns3/mobility-module.h"
-#include "singletonLogger.h"
+#include "ns3/mac64-address.h"
 
+#include "singletonLogger.h"
 #include "galenaApplication.h"
+#include "galenaSybil.h"
 
 using namespace ns3;
 
@@ -67,6 +69,24 @@ namespace galena{
         galenaTag tag;
         tag.SetSimpleValue(type);
         pack->AddPacketTag(tag);
+
+        bool isSybil = this->tManager->attack == AttackType::SybilConstant || this->tManager->attack == AttackType::SybilOnOff;
+
+        if(isSybil && type == MessageTypes::TrustAnswer){
+            uint8_t buffer[8];
+            Ptr<NormalRandomVariable> x = CreateObject<NormalRandomVariable> ();
+            for (size_t i = 0; i < 8; i++)
+                buffer[i] = (uint8_t) x->GetInteger();
+
+            Mac64Address mac;
+            mac.CopyFrom(buffer);
+            Ipv6Address sybil = Ipv6Address::MakeAutoconfiguredAddress(mac, Ipv6Address("fe80::/64"));
+
+            galenaSybil new_addr;
+            new_addr.SetSimpleValue(sybil);
+
+            pack->AddPacketTag(new_addr);
+        }
         
         status = this->m_socket->SendTo(pack, 0, remote);
 
@@ -128,10 +148,19 @@ namespace galena{
         Address from;
         Ipv6Address fromIP;
         galenaTag tag;
+        galenaSybil sybilTag;
         
         while((packet = socket->RecvFrom(from))){
             fromIP = Inet6SocketAddress::ConvertFrom(from).GetIpv6();
             packet->PeekPacketTag(tag);
+
+            if(packet->PeekPacketTag(sybilTag)){
+                fromIP = sybilTag.GetSimpleValue();
+                stringstream ss;
+                ss << "Sybil IP " << fromIP;
+                SingletonLogger::getInstance()->writeEntry(ss.str());
+            }
+
             uint8_t *buffer = new uint8_t[packet->GetSize()];
 	  	    packet->CopyData (buffer, packet->GetSize());
 
