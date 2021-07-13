@@ -38,9 +38,11 @@ int main(int argc, char *argv[])
 	string capfile = "capabilities.txt";
 	bool attack = false;
 	int attackDensity = 10;
+	int64_t startTime = 0;
 
 	CommandLine cmd;
 	cmd.AddValue ("nNodes", "Number of node devices", nNodes);
+	cmd.AddValue ("startTime", "Start time", startTime);
     cmd.AddValue ("duration", "duration", duration);
     cmd.AddValue ("traceFile", "Ns2 movement trace file", traceFile);
 	cmd.AddValue ("logdir", "galena log dir", logdir);
@@ -142,8 +144,8 @@ int main(int argc, char *argv[])
 	for (size_t i = 0; i < nodes.GetN() && getline(capFile, line); i++){
 		NS_LOG_INFO("Setting node " << i << " with " << line);
 		Ptr<galena::GalenaApplication> nodeApplication = Create<galena::GalenaApplication>();
-		nodeApplication->SetStartTime(Seconds(0.0));
-		nodeApplication->SetStopTime(Seconds(duration));
+		nodeApplication->SetStartTime(Seconds(startTime));
+		nodeApplication->SetStopTime(Seconds(startTime+duration));
 		nodes.Get(i)->AddApplication(nodeApplication);
 
 		vector<std::string> strs;
@@ -195,7 +197,7 @@ int main(int argc, char *argv[])
 
     NS_LOG_INFO("Starting Simulation");
 	logger->writeEntry("Starting Simulation");	
-	Simulator::Stop( Seconds(duration) );
+	Simulator::Stop( Seconds(startTime+duration) );
 	Simulator::Run();
 	
 	Simulator::Destroy();
