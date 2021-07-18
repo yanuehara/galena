@@ -15,11 +15,13 @@
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
+#include <sodium.h>
 
 #include "singletonLogger.h"
 #include "galenaDevicesProfile.h"
 #include "galenaApplication.h"
 #include "galenaConstants.h"
+#include "galenaDataProvenance.h"
 
 using namespace ns3;
 
@@ -30,6 +32,10 @@ int main(int argc, char *argv[])
     NS_LOG_UNCOND ("GALENA_V1");
     LogComponentEnable("GALENA_V1", LOG_LEVEL_ALL);
 	LogComponentEnable("GALENA_Application", LOG_LEVEL_ALL);
+
+	if (sodium_init() < 0) {
+        cerr << "Fatal sodium error";
+    }
 
     uint32_t nNodes = 16216;
     std::string traceFile;
