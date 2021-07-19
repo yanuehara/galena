@@ -4,6 +4,7 @@
 #include "ns3/application.h"
 #include "ns3/socket.h"
 #include "ns3/mobility-model.h"
+#include "ns3/wifi-phy.h"
 
 #include "galenaDevicesProfile.h"
 #include "galenaTag.h"
@@ -26,8 +27,11 @@ namespace galena{
             
             bool                                                    is_authenticating{false};
             Ipv6Address                                             is_authenticating_with;
+            bool                                                    sign_trust_message{false};
             std::vector<double>                                     recomendations;
             string                                                  authMethod;
+            double                                                  txPower;
+            double                                                  rxPower;
 
 
             Ptr<Socket>                                             m_socket;       	// Associated socket
@@ -63,6 +67,10 @@ namespace galena{
             int sendMessageHelper(MessageTypes type, Ipv6Address addr, uint8_t* buffer, int size);
             void clearTrust();
             void clearAuthentication();
+            
+            // Data Provenance sign message
+            void signMessage(const Ptr< const Packet > packet, uint16_t channelFreqMhz, WifiTxVector txVector, MpduInfo aMpdu);
+            void getRxRSSI(Ptr< const Packet > packet, uint16_t channelFreqMhz, WifiTxVector txVector, MpduInfo aMpdu, SignalNoiseDbm signalNoise);
     };
 
 }

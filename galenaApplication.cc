@@ -2,6 +2,8 @@
 
 #include "ns3/udp-socket-factory.h"
 #include "ns3/ipv6.h"
+#include "ns3/ipv6-header.h"
+#include "ns3/ipv6-l3-protocol.h"
 #include "ns3/node-list.h"
 #include "ns3/mobility-module.h"
 #include "ns3/mac64-address.h"
@@ -9,6 +11,7 @@
 #include "singletonLogger.h"
 #include "galenaApplication.h"
 #include "galenaSybil.h"
+#include "galenaDataProvenance.h"
 
 using namespace ns3;
 
@@ -94,10 +97,16 @@ namespace galena{
             NS_LOG_INFO(this->GetNodeIpAddress() << "Could not send package");
         }
 
+        this->sign_trust_message = false;
+
         return status;
     }
 
     void GalenaApplication::StartApplication(){
+        stringstream ss;
+        ss << "/NodeList/" << GetNode()->GetId() << "/DeviceList/*/$ns3::WifiNetDevice/Phy/$ns3::YansWifiPhy/MonitorSnifferTx";
+        Config::ConnectWithoutContext(ss.str(), MakeCallback(&GalenaApplication::signMessage, this));
+
         // If socket is not created yet
         if(!this->m_socket){
             // Create socket
@@ -188,6 +197,8 @@ namespace galena{
                     double trust = this->tManager->getNeighTrust(aboutNode);
                     uint8_t *sendBuf = new uint8_t[sizeof(trust)];
                     memcpy(sendBuf, &trust, sizeof(trust));
+
+                    this->sign_trust_message = true;
 
                     Simulator::ScheduleNow(&GalenaApplication::sendMessageHelper, this, MessageTypes::TrustAnswer, fromIP, sendBuf, sizeof(sendBuf));
                 }
@@ -418,5 +429,27 @@ namespace galena{
 
     void GalenaApplication::clearAuthentication(){
         this->is_authenticating = false;
+    }
+
+    void GalenaApplication::signMessage(const Ptr< const Packet > packet, uint16_t channelFreqMhz, WifiTxVector txVector, MpduInfo aMpdu){
+        if(!this->sign_trust_message)
+            return;
+        
+        this->txPower = txVector.GetTxPowerLevel();
+        Ipv6Address from, to;
+        from = GetPacketSource(packet);
+        to = GetPacketDestination(packet);
+        
+        
+        galenaSybil sybil;
+        bool isSybil = packet->PeekPacketTag(sybil);
+        
+        if(isSybil)
+            from = sybil.GetSimpleValue();
+
+        sign_message(from, to, packet, this->txPower);
+    }
+
+    void GalenaApplication::getRxRSSI(Ptr< const Packet > packet, uint16_t channelFreqMhz, WifiTxVector txVector, MpduInfo aMpdu, SignalNoiseDbm signalNoise){
     }
 }
