@@ -26,7 +26,7 @@ namespace galena{
         return galena_hash_message(from, to, pack, rssi, hmacs[{from, to}]);
     }
 
-    bool verify_message(Ipv6Address from, Ipv6Address to, Ptr<Packet> pack, double rssi){
+    bool verify_message(Ipv6Address from, Ipv6Address to, const Ptr< const Packet > pack, double rssi){
         hash_t calcHash, messageHash;
         galena_hash_message(from, to, pack, rssi, calcHash);
         std::memcpy(messageHash, hmacs[{from, to}], sizeof(hash_t));

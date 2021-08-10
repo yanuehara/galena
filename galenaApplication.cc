@@ -103,9 +103,15 @@ namespace galena{
     }
 
     void GalenaApplication::StartApplication(){
-        stringstream ss;
-        ss << "/NodeList/" << GetNode()->GetId() << "/DeviceList/*/$ns3::WifiNetDevice/Phy/$ns3::YansWifiPhy/MonitorSnifferTx";
-        Config::ConnectWithoutContext(ss.str(), MakeCallback(&GalenaApplication::signMessage, this));
+        if(this->sign_trust_message){
+            stringstream ss;
+            ss << "/NodeList/" << GetNode()->GetId() << "/DeviceList/*/$ns3::WifiNetDevice/Phy/$ns3::YansWifiPhy/MonitorSnifferTx";
+            Config::ConnectWithoutContext(ss.str(), MakeCallback(&GalenaApplication::signMessage, this));
+            ss.str(std::string());
+            ss << "/NodeList/" << GetNode()->GetId() << "/DeviceList/*/$ns3::WifiNetDevice/Phy/$ns3::YansWifiPhy/MonitorSnifferRx";
+            Config::ConnectWithoutContext(ss.str(), MakeCallback(&GalenaApplication::getRxRSSI, this));
+        }
+
 
         // If socket is not created yet
         if(!this->m_socket){
@@ -198,8 +204,6 @@ namespace galena{
                     uint8_t *sendBuf = new uint8_t[sizeof(trust)];
                     memcpy(sendBuf, &trust, sizeof(trust));
 
-                    this->sign_trust_message = true;
-
                     Simulator::ScheduleNow(&GalenaApplication::sendMessageHelper, this, MessageTypes::TrustAnswer, fromIP, sendBuf, sizeof(sendBuf));
                 }
                     break;
@@ -210,7 +214,15 @@ namespace galena{
                     double trust;
                     memcpy(&trust, buffer, sizeof(double));
 
-                    this->recomendations.push_back(trust);
+                    if(!this->sign_trust_message){
+                        this->recomendations.push_back(trust);
+                    }else if(this->sign_trust_message && this->data_provenance_matches){
+                        this->recomendations.push_back(trust);
+                    }else if(this->sign_trust_message && !this->data_provenance_matches){
+                        stringstream ss;
+                        NS_LOG_INFO("[" << this->GetNodeIpAddress() << "]" << " Discarded trust answer from " << fromIP);
+                        ss << "[" << this->GetNodeIpAddress() << "]" << " Discarded trust answer from " << fromIP;
+                    }
                 }
                     break;
                 case MessageTypes::ServiceRequest:{
@@ -435,7 +447,12 @@ namespace galena{
         if(!this->sign_trust_message)
             return;
         
+        galenaTag tag;
+        bool isGalena = packet->PeekPacketTag(tag);
+        if(!isGalena)
+            return;
         this->txPower = txVector.GetTxPowerLevel();
+
         Ipv6Address from, to;
         from = GetPacketSource(packet);
         to = GetPacketDestination(packet);
@@ -451,5 +468,17 @@ namespace galena{
     }
 
     void GalenaApplication::getRxRSSI(Ptr< const Packet > packet, uint16_t channelFreqMhz, WifiTxVector txVector, MpduInfo aMpdu, SignalNoiseDbm signalNoise){
+        galenaTag tag;
+        bool isGalena = packet->PeekPacketTag(tag);
+        if(!isGalena)
+            return;
+
+        Ipv6Address from, to;
+        from = GetPacketSource(packet);
+        to = GetPacketDestination(packet);
+
+        this->rxPower = txVector.GetTxPowerLevel();
+        
+        this->data_provenance_matches = verify_message(from, to, packet, this->rxPower);
     }
 }

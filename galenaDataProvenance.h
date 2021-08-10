@@ -19,7 +19,7 @@ namespace galena{
 
     int galena_hash_message(Ipv6Address from, Ipv6Address to, const Ptr< const Packet > packet, double rssi, hash_t hashDest);
     int sign_message(Ipv6Address from, Ipv6Address to, const Ptr< const Packet > packet, double rssi);
-    bool verify_message(Ipv6Address from, Ipv6Address to, Ptr<Packet> pack, double rssi);
+    bool verify_message(Ipv6Address from, Ipv6Address to, const Ptr< const Packet > pack, double rssi);
     
     Ipv6Address GetPacketSource(const Ptr< const Packet > packet);
     Ipv6Address GetPacketDestination(const Ptr< const Packet > packet);
