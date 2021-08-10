@@ -38,10 +38,10 @@ int main(int argc, char *argv[])
     }
 
     uint32_t nNodes = 16216;
-    std::string traceFile;
     int64_t duration = 2591810;
 	string logdir = ".";
-	string capfile = "capabilities.txt";
+	//string capfile = "capabilities.txt";
+	//std::string traceFile;
 	bool attack = false;
 	int attackDensity = 10;
 	int64_t startTime = 0;
@@ -50,9 +50,9 @@ int main(int argc, char *argv[])
 	cmd.AddValue ("nNodes", "Number of node devices", nNodes);
 	cmd.AddValue ("startTime", "Start time", startTime);
     cmd.AddValue ("duration", "duration", duration);
-    cmd.AddValue ("traceFile", "Ns2 movement trace file", traceFile);
+    //cmd.AddValue ("traceFile", "Ns2 movement trace file", traceFile);
 	cmd.AddValue ("logdir", "galena log dir", logdir);
-	cmd.AddValue ("capfile", "galena capafile", capfile);
+	//cmd.AddValue ("capfile", "galena capafile", capfile);
 	cmd.AddValue ("attack", "attack mode", attack);
 	cmd.AddValue ("attackDensity", "density of attackers", attackDensity);
 	cmd.Parse (argc,argv);
@@ -139,27 +139,29 @@ int main(int argc, char *argv[])
 	pol3.final = "NOPASS_1";
 
 
-	ifstream capFile(capfile);
-	std::string line;
+	//ifstream capFile(capfile);
+	//std::string line;
 	int maxAttackers = ceil(nNodes*attackDensity/100);
 	int attackerCount = 0;
 	stringstream ss;
 
 	NS_LOG_INFO("Creating galena application");
 	logger->writeEntry("Creating galena application");
-	for (size_t i = 0; i < nodes.GetN() && getline(capFile, line); i++){
-		NS_LOG_INFO("Setting node " << i << " with " << line);
+	for (size_t i = 0; i < nodes.GetN(); i++){
 		Ptr<galena::GalenaApplication> nodeApplication = Create<galena::GalenaApplication>();
 		nodeApplication->SetStartTime(Seconds(startTime));
 		nodeApplication->SetStopTime(Seconds(startTime+duration));
 		nodes.Get(i)->AddApplication(nodeApplication);
 
-		vector<std::string> strs;
-		//boost::algorithm::split_regex(strs, line, boost::regex("\t"));
+		/*vector<std::string> strs;
 		boost::split(strs,line,boost::is_any_of("\t"));
 		int profileIndex = std::strtol(strs[1].c_str(), nullptr, 10);
 		double xHome = std::strtod(strs[2].c_str(), nullptr);
 		double yHome = std::strtod(strs[3].c_str(), nullptr);
+		*/
+		int profileIndex = 1;
+		double xHome = 99999;
+		double yHome = 99999;
 
 		auto addr = nodeApplication->GetNodeIpAddress();
 		nodeAddrs->insert(make_pair(addr, i));
@@ -189,17 +191,29 @@ int main(int argc, char *argv[])
 			}
 		}
 
-		/*Ptr<LrWpanNetDevice> nodenetdev = DynamicCast<LrWpanNetDevice>(nodes.Get(i)->GetDevice(1));
-		auto phy = nodenetdev->GetPhy();
-		LrWpanSpectrumValueHelper svh;
-		auto psd = svh.CreateTxPowerSpectralDensity (-10, 11); //Range of 50m according to lr-wpan-error-distance-plot
-		phy->SetTxPowerSpectralDensity(psd);*/
 	}
 
-    NS_LOG_INFO("Setting up mobility");
+    /*
+	NS_LOG_INFO("Setting up mobility");
 	logger->writeEntry("Setting up mobility");
     Ns2MobilityHelper ns2 = Ns2MobilityHelper (traceFile);
     ns2.Install();
+	*/
+	NS_LOG_INFO("Setting up mobility");
+	logger->writeEntry("Setting up mobility");
+	MobilityHelper mobility;
+	mobility.SetPositionAllocator("ns3::RandomRectanglePositionAllocator",
+							"X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=1600.0]"),
+							"Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=1600.0]")
+	);
+	mobility.SetMobilityModel("ns3::RandomWalk2dMobilityModel",
+							"Mode", EnumValue(RandomWalk2dMobilityModel::MODE_DISTANCE),
+							"Distance", DoubleValue(5),
+							"Bounds", RectangleValue (
+								Rectangle (0, 1600, 0, 1600)
+							)
+	);
+	mobility.Install(nodes);
 
     NS_LOG_INFO("Starting Simulation");
 	logger->writeEntry("Starting Simulation");	

@@ -35,7 +35,7 @@ namespace galena{
     }
     
     Ipv6Header* GetPacketHeader(const Ptr< const Packet > packet){
-        Ipv6Header* ipv6Header;
+        Ipv6Header* ipv6Header = nullptr;
 
         Ptr<Packet> q = packet->Copy();
         PacketMetadata::ItemIterator metadataIterator = q->BeginItem();
