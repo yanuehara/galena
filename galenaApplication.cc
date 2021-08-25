@@ -129,6 +129,10 @@ namespace galena{
 
         // Run beaconing
         Simulator::ScheduleNow(&GalenaApplication::beacon, this);
+        stringstream ss;
+        ss << "/NodeList/" << GetNode()->GetId() << "/$ns3::MobilityModel/CourseChange";
+        Config::ConnectWithoutContext(ss.str(), MakeCallback (&GalenaApplication::beaconCallback, this));
+
         double stop1 = stod(getenv("GALENA_STOP1"), nullptr);
         double stop2 = stod(getenv("GALENA_STOP2"), nullptr);
         double stop3 = stod(getenv("GALENA_STOP3"), nullptr);
@@ -155,7 +159,11 @@ namespace galena{
         Ipv6Address addr = Ipv6Address("FF02::1");
         this->sendMessageHelper(MessageTypes::Beacon, addr, nullptr, 0);
 
-        Simulator::Schedule(Seconds(5), &GalenaApplication::beacon, this);
+        //Simulator::Schedule(Seconds(5), &GalenaApplication::beacon, this);
+    }
+
+    void GalenaApplication::beaconCallback(Ptr<const MobilityModel> model){
+        this->beacon();
     }
 
     void GalenaApplication::recvCallback(Ptr<Socket> socket){

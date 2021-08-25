@@ -57,6 +57,7 @@ namespace galena{
             void recvCallback(Ptr<Socket> socket);
 
             void beacon();
+            void beaconCallback(Ptr<const MobilityModel> model);
             void requestServicesAuth(Ipv6Address peer); //Request Services and Authentication methods
             void responseServicesAuth(Ipv6Address peer); //Answer a request for services list and authentication
             void doHandleServiceAnswer(Ipv6Address peer, uint8_t* buffer, int size); //Receive a service answer
