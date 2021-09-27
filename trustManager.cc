@@ -91,7 +91,7 @@ namespace galena{
         else if(this->attack == AttackType::SelfOnOff || this->attack == AttackType::SybilOnOff){
             Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
             x->SetAttribute ("Min", DoubleValue (0));
-            x->SetAttribute ("Max", DoubleValue (1.1));
+            x->SetAttribute ("Max", DoubleValue (1));
 
             bool shouldAttack = (bool)x->GetInteger();
             if(shouldAttack)

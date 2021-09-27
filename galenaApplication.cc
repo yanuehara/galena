@@ -259,9 +259,27 @@ namespace galena{
 
                     auto logger = SingletonLogger::getInstance();
                     stringstream ss;
+                    stringstream interactionFeedback;
 
                     if(authenticationMethod.compare(this->authMethod) == 0){
-                        this->tManager->updatePositiveInteractions(fromIP);
+                        // Auth successfull
+                        // But does not mean interaction was OK
+
+                        Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
+                        x->SetAttribute ("Min", DoubleValue (0));
+                        x->SetAttribute ("Max", DoubleValue (1));
+
+                        bool positiveInteraction = (bool)x->GetInteger();
+
+                        if(positiveInteraction){
+                            this->tManager->updatePositiveInteractions(fromIP);
+                            NS_LOG_INFO("Interaction("<< fromIP << "), (" << myaddr << ")=1");
+                            interactionFeedback << "Interaction("<< fromIP << "), (" << myaddr << ")=1";
+                        } else {
+                            NS_LOG_INFO("Interaction("<< fromIP << "), (" << myaddr << ")=0");
+                            interactionFeedback << "Interaction("<< fromIP << "), (" << myaddr << ")=0";
+                        }
+                        
                         NS_LOG_INFO("AUTH END(" << fromIP << "), (" << myaddr << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod);
                         ss << "AUTH END(" << fromIP << "), (" << myaddr << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod;
                     }else{
@@ -270,6 +288,7 @@ namespace galena{
                     }
 
                     logger->writeEntry(ss.str());
+                    logger->writeEntry(interactionFeedback.str());
                 }
                     break;
 
@@ -327,9 +346,9 @@ namespace galena{
         //decide if authenticate
         Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
         x->SetAttribute ("Min", DoubleValue (0));
-        x->SetAttribute ("Max", DoubleValue (1.1));
+        x->SetAttribute ("Max", DoubleValue (1));
 
-        bool should_authenticate = (bool)x->GetValue ();
+        bool should_authenticate = (bool)x->GetInteger ();
         should_authenticate = should_authenticate && this->GetNodeIpAddress() < peer && !this->is_authenticating;
 
         if(should_authenticate){
