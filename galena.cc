@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 		if (attack){
 			Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
 			x->SetAttribute ("Min", DoubleValue (0));
-			x->SetAttribute ("Max", DoubleValue (1));
+			x->SetAttribute ("Max", DoubleValue (1.1));
 
 			bool attacker = (bool)x->GetInteger ();
 			if (attacker && attackerCount < maxAttackers) {

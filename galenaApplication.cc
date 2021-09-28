@@ -267,7 +267,7 @@ namespace galena{
 
                         Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
                         x->SetAttribute ("Min", DoubleValue (0));
-                        x->SetAttribute ("Max", DoubleValue (1));
+                        x->SetAttribute ("Max", DoubleValue (1.1));
 
                         bool positiveInteraction = (bool)x->GetInteger();
 
@@ -346,7 +346,7 @@ namespace galena{
         //decide if authenticate
         Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
         x->SetAttribute ("Min", DoubleValue (0));
-        x->SetAttribute ("Max", DoubleValue (1));
+        x->SetAttribute ("Max", DoubleValue (1.1));
 
         bool should_authenticate = (bool)x->GetInteger ();
         should_authenticate = should_authenticate && this->GetNodeIpAddress() < peer && !this->is_authenticating;
