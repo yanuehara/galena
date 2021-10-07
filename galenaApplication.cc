@@ -364,7 +364,7 @@ namespace galena{
 
         int nodeIDPeer = (*this->nodemap)[peer];
         double distance = this->getDistance(nodeIDPeer);
-        double normDistance = 1.0 - exp(-distance/4000.0);
+        double normDistance = 1.0 - (distance/4000.0); //Minmax
         double similarity = this->getSimilarity(peer);
         double lastInteraction = Simulator::Now().ToDouble(Time::S);
         string context = this->getContext();
