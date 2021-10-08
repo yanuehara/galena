@@ -97,13 +97,11 @@ namespace galena{
             NS_LOG_INFO(this->GetNodeIpAddress() << "Could not send package");
         }
 
-        this->sign_trust_message = false;
-
         return status;
     }
 
     void GalenaApplication::StartApplication(){
-        if(this->sign_trust_message){
+        if(this->validateProvenance){
             stringstream ss;
             ss << "/NodeList/" << GetNode()->GetId() << "/DeviceList/*/$ns3::WifiNetDevice/Phy/$ns3::YansWifiPhy/MonitorSnifferTx";
             Config::ConnectWithoutContext(ss.str(), MakeCallback(&GalenaApplication::signMessage, this));
@@ -222,11 +220,11 @@ namespace galena{
                     double trust;
                     memcpy(&trust, buffer, sizeof(double));
 
-                    if(!this->sign_trust_message){
+                    if(!this->validateProvenance){
                         this->recomendations.push_back(trust);
-                    }else if(this->sign_trust_message && this->data_provenance_matches){
+                    }else if(this->validateProvenance && this->data_provenance_matches){
                         this->recomendations.push_back(trust);
-                    }else if(this->sign_trust_message && !this->data_provenance_matches){
+                    }else if(this->validateProvenance && !this->data_provenance_matches){
                         stringstream ss;
                         NS_LOG_INFO("[" << this->GetNodeIpAddress() << "]" << " Discarded trust answer from " << fromIP);
                         ss << "[" << this->GetNodeIpAddress() << "]" << " Discarded trust answer from " << fromIP;
@@ -453,12 +451,9 @@ namespace galena{
     }
 
     void GalenaApplication::signMessage(const Ptr< const Packet > packet, uint16_t channelFreqMhz, WifiTxVector txVector, MpduInfo aMpdu){
-        if(!this->sign_trust_message)
-            return;
-        
         galenaTag tag;
         bool isGalena = packet->PeekPacketTag(tag);
-        if(!isGalena)
+        if(!isGalena || tag.GetSimpleValue() != MessageTypes::TrustAnswer)
             return;
         this->txPower = txVector.GetTxPowerLevel();
 

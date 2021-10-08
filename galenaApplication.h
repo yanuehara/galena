@@ -27,7 +27,6 @@ namespace galena{
             
             bool                                                    is_authenticating{false};
             Ipv6Address                                             is_authenticating_with;
-            bool                                                    sign_trust_message{false};
             bool                                                    data_provenance_matches{false};
             std::vector<double>                                     recomendations;
             string                                                  authMethod;
@@ -41,6 +40,7 @@ namespace galena{
 
         public:
             std::map<Ipv6Address, int>*                             nodemap;
+            bool                                                    validateProvenance;
             std::vector<AuthenticationMechanisms> authm{AuthenticationMechanisms::ECC,
                                                     AuthenticationMechanisms::RSA,
                                                     AuthenticationMechanisms::SIM,

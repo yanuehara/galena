@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
 	bool attack = false;
 	int attackDensity = 10;
 	int64_t startTime = 0;
+	bool validateProvenance = false;
 
 	CommandLine cmd;
 	cmd.AddValue ("nNodes", "Number of node devices", nNodes);
@@ -55,6 +56,7 @@ int main(int argc, char *argv[])
 	//cmd.AddValue ("capfile", "galena capafile", capfile);
 	cmd.AddValue ("attack", "attack mode", attack);
 	cmd.AddValue ("attackDensity", "density of attackers", attackDensity);
+	cmd.AddValue ("validate-provenance", "Should validate data provenance", validateProvenance);
 	cmd.Parse (argc,argv);
 
 	mkdir(logdir.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -135,7 +137,7 @@ int main(int argc, char *argv[])
 	pol3.ids = std::set<Ipv6Address>{Ipv6Address{"FF02::1"}};
 	pol3.auth = std::set<galena::AuthenticationMechanisms>{ galena::AuthenticationMechanisms::NOPASS };
 	pol3.trustCompare = galena::policyTrustComparator::GT;
-	pol3.contexts = std::set<string>{"home"};
+	pol3.contexts = std::set<string>{"any"};
 	pol3.final = "NOPASS_1";
 
 
@@ -172,6 +174,8 @@ int main(int argc, char *argv[])
 		nodeApplication->polManager->addPolicy(pol3);
 		nodeApplication->tManager->myaddr = addr;
 		nodeApplication->tManager->logdir = logdir;
+
+		nodeApplication->validateProvenance = validateProvenance;
 
 		if (attack){
 			Ptr<UniformRandomVariable> x = CreateObject<UniformRandomVariable> ();
