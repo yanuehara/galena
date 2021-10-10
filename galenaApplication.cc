@@ -183,7 +183,7 @@ namespace galena{
             }
 
             uint8_t *buffer = new uint8_t[packet->GetSize()];
-	  	    packet->CopyData (buffer, packet->GetSize());
+            packet->CopyData (buffer, packet->GetSize());
 
             switch (tag.GetSimpleValue()){
                 case MessageTypes::Beacon:{
@@ -249,6 +249,7 @@ namespace galena{
                 case MessageTypes::ServiceExchange:{
                     this->is_authenticating = false;
                     std::string authenticationMethod = std::string((char*)buffer);
+                    authenticationMethod = authenticationMethod.substr(0,8);
 
                     Ipv6Address myaddr = this->GetNodeIpAddress();
                     /*if( fromIP < myaddr){
@@ -258,14 +259,14 @@ namespace galena{
                     auto logger = SingletonLogger::getInstance();
                     stringstream ss;
 
-                    if(authenticationMethod.compare(this->authMethod) == 0){
+                    if(this->authMethod.compare(authenticationMethod) == 0){
                         // Auth successfull
                         this->tManager->updatePositiveInteractions(fromIP);
-                        NS_LOG_INFO("AUTH END(" << fromIP << "," << authenticationMethod << "), (" << myaddr << "," << this->authMethod << ") AT" << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod);
-                        ss << "AUTH END(" << fromIP << "," << authenticationMethod << "), (" << myaddr << "," << this->authMethod << ") AT" << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod;
+                        NS_LOG_INFO("AUTH END(" << fromIP << "," << authenticationMethod << "), (" << myaddr << "," << this->authMethod << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod);
+                        ss << "AUTH END(" << fromIP << "," << authenticationMethod << "), (" << myaddr << "," << this->authMethod << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=" << authenticationMethod;
                     }else{
-                        NS_LOG_INFO("AUTH END(" << fromIP << "," << authenticationMethod << "), (" << myaddr << "," << this->authMethod << ") AT" << Simulator::Now().GetSeconds() << " WITH AUTHM=NONE");
-                        ss << "AUTH END(" << fromIP << "," << authenticationMethod << "), (" << myaddr << "," << this->authMethod << ") AT" << Simulator::Now().GetSeconds() << " WITH AUTHM=NONE";
+                        NS_LOG_INFO("AUTH END(" << fromIP << "," << authenticationMethod << "), (" << myaddr << "," << this->authMethod << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=NONE");
+                        ss << "AUTH END(" << fromIP << "," << authenticationMethod << "), (" << myaddr << "," << this->authMethod << ") AT " << Simulator::Now().GetSeconds() << " WITH AUTHM=NONE";
                     }
 
                     logger->writeEntry(ss.str());
@@ -385,9 +386,9 @@ namespace galena{
         this->authMethod = authenticationMethod;
         
         int bufsize = authenticationMethod.length();
-        uint8_t* buffer = new uint8_t[bufsize]{'\0'};
+        uint8_t* buffer = new uint8_t[bufsize+1]{'\0'};
         //std::copy(authenticationMethod.begin(), authenticationMethod.end(), &buffer[0]);
-        memmove(buffer, authenticationMethod.c_str(), bufsize);
+        memmove(buffer, authenticationMethod.c_str(), bufsize+1);
 
         //this->sendMessageHelper(MessageTypes::ServiceExchange, peer, buffer, authenticationMethod.length());
         Simulator::Schedule(Seconds(0.1), &GalenaApplication::sendMessageHelper, this, MessageTypes::ServiceExchange, peer, buffer, authenticationMethod.length());
