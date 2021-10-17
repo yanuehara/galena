@@ -37,6 +37,8 @@ int main(int argc, char *argv[])
         cerr << "Fatal sodium error";
     }
 
+	PacketMetadata::Enable ();
+
     uint32_t nNodes = 16216;
     int64_t duration = 2591810;
 	string logdir = ".";

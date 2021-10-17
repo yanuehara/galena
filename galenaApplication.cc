@@ -475,7 +475,7 @@ namespace galena{
     void GalenaApplication::getRxRSSI(Ptr< const Packet > packet, uint16_t channelFreqMhz, WifiTxVector txVector, MpduInfo aMpdu, SignalNoiseDbm signalNoise){
         galenaTag tag;
         bool isGalena = packet->PeekPacketTag(tag);
-        if(!isGalena)
+        if(!isGalena || tag.GetSimpleValue() != MessageTypes::TrustAnswer)
             return;
 
         Ipv6Address from, to;
