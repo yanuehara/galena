@@ -90,9 +90,13 @@ int main(int argc, char *argv[])
 
 	// PHY layer
 	YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default();
+	wifiPhy.SetErrorRateModel("ns3::YansErrorRateModel");
+
 	YansWifiChannelHelper wifiChannel;
 	wifiChannel.AddPropagationLoss("ns3::RangePropagationLossModel",
 									"MaxRange", DoubleValue(50.0));
+	wifiChannel.AddPropagationLoss("ns3::LogDistancePropagationLossModel",
+									"ReferenceDistance", DoubleValue(35.0));
 	wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
 	wifiPhy.SetChannel (wifiChannel.Create ());
 

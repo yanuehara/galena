@@ -38,19 +38,19 @@ namespace galena{
     uint32_t
     uuidTag::GetSerializedSize (void) const
     {
-        return m_uuidStringValue.size(); //36
+        return 36;
     }
 
     void
     uuidTag::Serialize (TagBuffer i) const
     {
-        i.Write((uint8_t*)m_uuidStringValue.data(), this->GetSerializedSize());
+        i.Write((uint8_t*) this->m_uuidStringValue.c_str(), this->GetSerializedSize());
     }
 
     void
     uuidTag::Deserialize (TagBuffer i)
     {
-        uint8_t buffer[16];
+        uint8_t buffer[37]{'\0'};
         i.Read(buffer, this->GetSerializedSize());
         this->m_uuidStringValue = std::string((char*)buffer);
         

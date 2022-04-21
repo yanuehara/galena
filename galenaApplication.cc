@@ -12,6 +12,7 @@
 #include "galenaApplication.h"
 #include "galenaSybil.h"
 #include "galenaDataProvenance.h"
+#include "galenaUUIDTag.h"
 
 using namespace ns3;
 
@@ -72,6 +73,28 @@ namespace galena{
         galenaTag tag;
         tag.SetSimpleValue(type);
         pack->AddPacketTag(tag);
+
+        if (type == MessageTypes::TrustAnswer){
+            uuidTag uuid_tag;
+            boost::uuids::uuid uuid_value;
+            boost::uuids::random_generator uuid_gen;
+            
+            uuid_value = uuid_gen();
+            uuid_tag.SetUuidValue(uuid_value);
+            pack->AddPacketTag(uuid_tag);
+
+            auto logger = SingletonLogger::getInstance();
+            std::stringstream ss;
+
+            if (this->tManager->attack != AttackType::NoAttack){
+                NS_LOG_INFO("(" << this->GetNodeIpAddress() << "," << addr << ", A)=>" << uuid_value);
+                ss << "(" << this->GetNodeIpAddress() << "," << addr << ", A)=>" << uuid_value;
+            }else{
+                NS_LOG_INFO("(" << this->GetNodeIpAddress() << "," << addr << ")=>" << uuid_value);
+                ss << "(" << this->GetNodeIpAddress() << "," << addr << ")=>" << uuid_value;
+            }
+            logger->writeEntry(ss.str());
+        }
 
         bool isSybil = this->tManager->attack == AttackType::SybilConstant || this->tManager->attack == AttackType::SybilOnOff;
 
@@ -170,6 +193,7 @@ namespace galena{
         Ipv6Address fromIP;
         galenaTag tag;
         galenaSybil sybilTag;
+        uuidTag uuid_tag;
         
         while((packet = socket->RecvFrom(from))){
             fromIP = Inet6SocketAddress::ConvertFrom(from).GetIpv6();
@@ -225,9 +249,15 @@ namespace galena{
                     }else if(this->validateProvenance && this->data_provenance_matches){
                         this->recomendations.push_back(trust);
                     }else if(this->validateProvenance && !this->data_provenance_matches){
+                        packet->PeekPacketTag(uuid_tag);
+
+                        auto logger = SingletonLogger::getInstance();
                         stringstream ss;
-                        NS_LOG_INFO("[" << this->GetNodeIpAddress() << "]" << " Discarded trust answer from " << fromIP);
-                        ss << "[" << this->GetNodeIpAddress() << "]" << " Discarded trust answer from " << fromIP;
+                        
+                        NS_LOG_INFO("[" << this->GetNodeIpAddress() << "]" << " Discarded trust answer from " << fromIP << " " << uuid_tag.GetSimpleValue());
+                        ss << "[" << this->GetNodeIpAddress() << "]" << " Discarded trust answer from " << fromIP << " " << uuid_tag.GetSimpleValue();
+
+                        logger->writeEntry(ss.str());
                     }
                 }
                     break;
